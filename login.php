@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
       if (password_verify($password . $salt, $hashedPassword)) {
         $_SESSION['email'] = $email;
         $_SESSION['user_type'] = $userType;
-        header('Location: home.php');
+        header('Location: index.php');
       } else {
         $errors[] = "Invalid email or password!";
       }
@@ -81,6 +81,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
   </form>
   <p class="signup-link">
     Don't have an account? <a href="signup.php">Sign Up</a>
+  </p>
+  <p class="admin-link">
+    Are you an admin? <a href="admin.php">Admin Login</a>
   </p>
 </body>
 
