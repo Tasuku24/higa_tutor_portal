@@ -1,31 +1,39 @@
 <!-- 生徒登録とチューター登録の表示切り替えとか頼む -->
 <?php
+
+// 流れ的には
+// 1. チューター or 生徒を選択
+// 2. 基本情報を入力
+// 3. 科目を選択
+
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 // error list
 // 1. パスワードが一致していない場合のエラー表示
 // 2. メールアドレスがすでに登録されている場合のエラー表示
 // 3. チューター登録の場合、教科が選択されていない場合のエラー表示
+// ってのをjavascriptとかでお願い
 session_start();
 if (isset($_SESSION['email'])) {
   header('Location: home.php');
   exit;
 }
 $errors = [];
-$email = $password = $confirmPassword = $name = $sex = $preferredLanguage = $universityChoice = $grade = "";
+$email = $password_input = $confirmPassword = $name = $sex = $preferredLanguage = $universityChoice = $grade = "";
 $subjects = [];
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
   $email = $_POST['email'];
-  $password = $_POST['password'];
+  $password_input = $_POST['password'];
   $confirmPassword = $_POST['confirm-password'];
   $name = $_POST['name'];
   $sex = $_POST['sex'];
   $preferredLanguage = $_POST['preferred-language'];
   $universityChoice = $_POST['university-choice'];
-  $subjects = $_POST['subjects'];
+  if (isset($_POST['subjects']))
+    $subjects = $_POST['subjects'];
 
-  if ($password !== $confirmPassword) {
+  if ($password_input != $confirmPassword) {
     $errors[] = "Passwords do not match!";
   }
 
@@ -53,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
   }
 
   $salt = bin2hex(random_bytes(32));
-  $hashedPassword = password_hash($password . $salt, PASSWORD_DEFAULT);
+  $hashedPassword = password_hash($password_input . $salt, PASSWORD_DEFAULT);
 
   if (isset($_POST['signup_as_tutor']) && $flag) {
     if (empty($_POST['subjects'])) {
@@ -73,6 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
   if ($stmt->execute() && empty($errors)) {
     $_SESSION['email'] = $email;
+    $_SESSION['user_type'] = isset($_POST['signup_as_tutor']) ? 'tutor' : 'student';
     header('Location: home.php');
     exit;
   } else if (empty($errors)) {
@@ -103,30 +112,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
   <?php endif; ?>
   <!-- チューター登録 -->
   <form method="post">
-    <input type="text" name="email" id="email" placeholder="Email" value="<?php echo htmlspecialchars($email); ?>" required>
-    <input type="password" name="password" id="password" placeholder="Password" required>
-    <input type="password" name="confirm-password" id="confirm-password" placeholder="Confirm Password" required>
-    <input type="text" name="name" id="name" placeholder="Name" value="<?php echo htmlspecialchars($name); ?>" required>
-    <select name="sex" id="sex" required>
-      <option value="" disabled <?php echo empty($sex) ? 'selected' : ''; ?>>Select Sex</option>
-      <option value="male" <?php echo $sex == 'male' ? 'selected' : ''; ?>>Male</option>
-      <option value="female" <?php echo $sex == 'female' ? 'selected' : ''; ?>>Female</option>
-      <option value="other" <?php echo $sex == 'other' ? 'selected' : ''; ?>>Other</option>
-    </select>
-    <select name="preferred-language" id="preferred-language" required>
-      <option value="" disabled <?php echo empty($preferredLanguage) ? 'selected' : ''; ?>>Select Preferred Language</option>
-      <option value="english" <?php echo $preferredLanguage == 'english' ? 'selected' : ''; ?>>English</option>
-      <option value="japanese" <?php echo $preferredLanguage == 'japanese' ? 'selected' : ''; ?>>Japanese</option>
-      <option value="both" <?php echo $preferredLanguage == 'both' ? 'selected' : ''; ?>>Both</option>
-    </select>
-    <select name="university-choice" id="university-choice" required>
-      <option value="" disabled <?php echo empty($universityChoice) ? 'selected' : ''; ?>>Select University Choice</option>
-      <option value="abroad" <?php echo $universityChoice == 'abroad' ? 'selected' : ''; ?>>Abroad</option>
-      <option value="domestic" <?php echo $universityChoice == 'domestic' ? 'selected' : ''; ?>>Domestic</option>
-      <option value="both" <?php echo $universityChoice == 'both' ? 'selected' : ''; ?>>Both</option>
-    </select>
     <div class="subjects">
-      <label for="subjects">Subjects you can teach:</label>
+      <label for="subjects">Your Subjects:</label>
       <div class="subject-group">
         <h3>Mathematics</h3>
         <div>
@@ -201,11 +188,31 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </div>
       </div>
     </div>
-    <input type="submit" name="signup_as_tutor" value="Sign Up" id="signup_as_tutor">
-  </form>
+    <input type="text" name="email" id="email" placeholder="Email" value="<?php echo htmlspecialchars($email); ?>" required>
+    <input type="password" name="password" id="password" placeholder="Password" required>
+    <input type="password" name="confirm-password" id="confirm-password" placeholder="Confirm Password" required>
+    <input type="text" name="name" id="name" placeholder="Name" value="<?php echo htmlspecialchars($name); ?>" required>
+    <select name="sex" id="sex" required>
+      <option value="" disabled <?php echo empty($sex) ? 'selected' : ''; ?>>Select Sex</option>
+      <option value="male" <?php echo $sex == 'male' ? 'selected' : ''; ?>>Male</option>
+      <option value="female" <?php echo $sex == 'female' ? 'selected' : ''; ?>>Female</option>
+      <option value="other" <?php echo $sex == 'other' ? 'selected' : ''; ?>>Other</option>
+    </select>
+    <select name="preferred-language" id="preferred-language" required>
+      <option value="" disabled <?php echo empty($preferredLanguage) ? 'selected' : ''; ?>>Select Preferred Language</option>
+      <option value="english" <?php echo $preferredLanguage == 'english' ? 'selected' : ''; ?>>English</option>
+      <option value="japanese" <?php echo $preferredLanguage == 'japanese' ? 'selected' : ''; ?>>Japanese</option>
+      <option value="both" <?php echo $preferredLanguage == 'both' ? 'selected' : ''; ?>>Both</option>
+    </select>
+    <select name="university-choice" id="university-choice" required>
+      <option value="" disabled <?php echo empty($universityChoice) ? 'selected' : ''; ?>>Select University Choice</option>
+      <option value="abroad" <?php echo $universityChoice == 'abroad' ? 'selected' : ''; ?>>Abroad</option>
+      <option value="domestic" <?php echo $universityChoice == 'domestic' ? 'selected' : ''; ?>>Domestic</option>
+      <option value="both" <?php echo $universityChoice == 'both' ? 'selected' : ''; ?>>Both</option>
+    </select>
+    <input type="submit" name="signup_as_tutor" value="Sign Up as Tutor" id="signup_as_tutor">
 
-  <!-- 生徒登録 -->
-  <form method="post">
+    <!-- 生徒登録 -->
     <input type="text" name="email" id="email" placeholder="Email" value="<?php echo htmlspecialchars($email); ?>" required>
     <input type="password" name="password" id="password" placeholder="Password" required>
     <input type="password" name="confirm-password" id="confirm-password" placeholder="Confirm Password" required>
@@ -235,7 +242,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
       <option value="domestic" <?php echo $universityChoice == 'domestic' ? 'selected' : ''; ?>>Domestic</option>
       <option value="both" <?php echo $universityChoice == 'both' ? 'selected' : ''; ?>>Both</option>
     </select>
-    <input type="submit" name="signup_as_student" value="Sign Up" id="signup_as_student">
+    <input type="submit" name="signup_as_student" value="Sign Up as Student" id="signup_as_student">
   </form>
   <p class="signup-link">
     Already have an account? <a href="login.php">Login</a>
