@@ -20,19 +20,38 @@ h2 {
   text-align: center;
   font-size: 1.8rem;
   font-weight: 700;
+  margin: 1.4rem 0;
+}
+
+h3 {
+  font-size: 1.5rem;
+  margin: 1rem 0 .5rem;
 }
 
 input[type="text"], input[type="email"], input[type="password"], select {
+  background-color: var(--bg-clr);
   width: 400px;
   height: 56px;
   padding: 0 28px;
   font-size: 1.5rem;
-  border-radius: 28px;
+  border-radius: 100vh;
+  border: solid 1px var(--tx-clr);
+  appearance: none;
+}
+
+input[type="checkbox"] {
+  display: none;
+}
+
+select:invalid {
+  color: rgb(38 38 38 / .55);
 }
 
 input::placeholder {
-  font-size: 20px;
+  font-size: 1.3rem;
+  color: var(--tx-clr);
   vertical-align: middle;
+  opacity: .55;
 }
 
 .title {
@@ -77,7 +96,7 @@ input::placeholder {
 #tutor-form form {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 2rem;
 }
 
 .bacic-info .bacic-questions {
@@ -87,10 +106,54 @@ input::placeholder {
   gap: 1rem;
 }
 
-.bacic-info .bacic-questions input {
-  
+.subject {
+  width: 65vw;
+  max-width: 900px;
 }
 
-.bacic-info .bacic-questions input::placeholder {
-  font-size: 1rem;
+.subject .subject-group div {
+  margin: 0 5% 0;
+  width: 90%;
+  font-size: 1.2rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.subject .subject-group div label {
+  text-align: center;
+  border: solid 1px var(--tx-clr);
+  border-radius: 30px;
+  padding: 14px;
+}
+
+.subject .subject-group div input:checked + label {
+  background-color: var(--pr-clr);
+  color: var(--bg-clr);
+  border-color: transparent;
+}
+
+
+
+#signup_as_tutor {
+  display: block;
+  margin: 2rem auto 0;
+  text-align: center;
+  line-height: 50px;
+  width: 250px;
+  height: 50px;
+  font-size: 1.2rem;
+  border-radius: 100vh;
+  border: none;
+  background-color: var(--pr-clr);
+  color: var(--bg-clr);
+}
+
+.signup-link {
+  text-align: center;
+}
+
+.signup-link a {
+  color: var(--pr-clr);
+  text-decoration: none;
 }

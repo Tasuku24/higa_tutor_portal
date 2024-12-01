@@ -150,81 +150,83 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </div>
         <div class="subjects">
           <h2>Subjects (that you can teach)</h2>
-          <div class="subject-group">
-            <h3>Mathematics</h3>
-            <div>
-              <input type="checkbox" name="subjects[]" id="tutor-maths-aa-sl" value="maths-aa-sl" <?php echo in_array('maths-aa-sl', $subjects) ? 'checked' : ''; ?>>
-              <label for="tutor-maths-aa-sl">Mathematics: Analysis and Approaches SL</label>
-              <input type="checkbox" name="subjects[]" id="tutor-maths-aa-hl" value="maths-aa-hl" <?php echo in_array('maths-aa-hl', $subjects) ? 'checked' : ''; ?>>
-              <label for="tutor-maths-aa-hl">Mathematics: Analysis and Approaches HL</label>
-              <input type="checkbox" name="subjects[]" id="tutor-maths-ai-sl" value="maths-ai-sl" <?php echo in_array('maths-ai-sl', $subjects) ? 'checked' : ''; ?>>
-              <label for="tutor-maths-ai-sl">Mathematics: Applications and Interpretation SL</label>
-              <input type="checkbox" name="subjects[]" id="tutor-maths-ai-hl" value="maths-ai-hl" <?php echo in_array('maths-ai-hl', $subjects) ? 'checked' : ''; ?>>
-              <label for="tutor-maths-ai-hl">Mathematics: Applications and Interpretation HL</label>
+          <div class="subject">
+            <div class="subject-group">
+              <h3>Mathematics</h3>
+              <div>
+                <input type="checkbox" name="subjects[]" id="tutor-maths-aa-sl" value="maths-aa-sl" <?php echo in_array('maths-aa-sl', $subjects) ? 'checked' : ''; ?>>
+                <label for="tutor-maths-aa-sl">Analysis and Approaches SL</label>
+                <input type="checkbox" name="subjects[]" id="tutor-maths-aa-hl" value="maths-aa-hl" <?php echo in_array('maths-aa-hl', $subjects) ? 'checked' : ''; ?>>
+                <label for="tutor-maths-aa-hl">Analysis and Approaches HL</label>
+                <input type="checkbox" name="subjects[]" id="tutor-maths-ai-sl" value="maths-ai-sl" <?php echo in_array('maths-ai-sl', $subjects) ? 'checked' : ''; ?>>
+                <label for="tutor-maths-ai-sl">Applications and Interpretation SL</label>
+                <input type="checkbox" name="subjects[]" id="tutor-maths-ai-hl" value="maths-ai-hl" <?php echo in_array('maths-ai-hl', $subjects) ? 'checked' : ''; ?>>
+                <label for="tutor-maths-ai-hl">Applications and Interpretation HL</label>
+              </div>
             </div>
-          </div>
-          <div class="subject-group">
-            <h3>Sciences</h3>
-            <div>
-              <input type="checkbox" name="subjects[]" id="tutor-physics-sl" value="physics-sl" <?php echo in_array('physics-sl', $subjects) ? 'checked' : ''; ?>>
-              <label for="tutor-physics-sl">Physics SL</label>
-              <input type="checkbox" name="subjects[]" id="tutor-physics-hl" value="physics-hl" <?php echo in_array('physics-hl', $subjects) ? 'checked' : ''; ?>>
-              <label for="tutor-physics-hl">Physics HL</label>
-              <input type="checkbox" name="subjects[]" id="tutor-chemistry-sl" value="chemistry-sl" <?php echo in_array('chemistry-sl', $subjects) ? 'checked' : ''; ?>>
-              <label for="tutor-chemistry-sl">Chemistry SL</label>
-              <input type="checkbox" name="subjects[]" id="tutor-chemistry-hl" value="chemistry-hl" <?php echo in_array('chemistry-hl', $subjects) ? 'checked' : ''; ?>>
-              <label for="tutor-chemistry-hl">Chemistry HL</label>
-              <input type="checkbox" name="subjects[]" id="tutor-biology-sl" value="biology-sl" <?php echo in_array('biology-sl', $subjects) ? 'checked' : ''; ?>>
-              <label for="tutor-biology-sl">Biology SL</label>
-              <input type="checkbox" name="subjects[]" id="tutor-biology-hl" value="biology-hl" <?php echo in_array('biology-hl', $subjects) ? 'checked' : ''; ?>>
-              <label for="tutor-biology-hl">Biology HL</label>
+            <div class="subject-group">
+              <h3>Sciences</h3>
+              <div>
+                <input type="checkbox" name="subjects[]" id="tutor-physics-sl" value="physics-sl" <?php echo in_array('physics-sl', $subjects) ? 'checked' : ''; ?>>
+                <label for="tutor-physics-sl">Physics SL</label>
+                <input type="checkbox" name="subjects[]" id="tutor-physics-hl" value="physics-hl" <?php echo in_array('physics-hl', $subjects) ? 'checked' : ''; ?>>
+                <label for="tutor-physics-hl">Physics HL</label>
+                <input type="checkbox" name="subjects[]" id="tutor-chemistry-sl" value="chemistry-sl" <?php echo in_array('chemistry-sl', $subjects) ? 'checked' : ''; ?>>
+                <label for="tutor-chemistry-sl">Chemistry SL</label>
+                <input type="checkbox" name="subjects[]" id="tutor-chemistry-hl" value="chemistry-hl" <?php echo in_array('chemistry-hl', $subjects) ? 'checked' : ''; ?>>
+                <label for="tutor-chemistry-hl">Chemistry HL</label>
+                <input type="checkbox" name="subjects[]" id="tutor-biology-sl" value="biology-sl" <?php echo in_array('biology-sl', $subjects) ? 'checked' : ''; ?>>
+                <label for="tutor-biology-sl">Biology SL</label>
+                <input type="checkbox" name="subjects[]" id="tutor-biology-hl" value="biology-hl" <?php echo in_array('biology-hl', $subjects) ? 'checked' : ''; ?>>
+                <label for="tutor-biology-hl">Biology HL</label>
+              </div>
             </div>
-          </div>
-          <div class="subject-group">
-            <h3>Languages</h3>
-            <div>
-              <input type="checkbox" name="subjects[]" id="tutor-english-a-sl" value="english-a-sl" <?php echo in_array('english-a-sl', $subjects) ? 'checked' : ''; ?>>
-              <label for="tutor-english-a-sl">English A SL</label>
-              <input type="checkbox" name="subjects[]" id="tutor-english-a-hl" value="english-a-hl" <?php echo in_array('english-a-hl', $subjects) ? 'checked' : ''; ?>>
-              <label for="tutor-english-a-hl">English A HL</label>
-              <input type="checkbox" name="subjects[]" id="tutor-japanese-a-sl" value="japanese-a-sl" <?php echo in_array('japanese-a-sl', $subjects) ? 'checked' : ''; ?>>
-              <label for="tutor-japanese-a-sl">Japanese A SL</label>
-              <input type="checkbox" name="subjects[]" id="tutor-japanese-a-hl" value="japanese-a-hl" <?php echo in_array('japanese-a-hl', $subjects) ? 'checked' : ''; ?>>
-              <label for="tutor-japanese-a-hl">Japanese A HL</label>
-              <input type="checkbox" name="subjects[]" id="tutor-english-b-sl" value="english-b-sl" <?php echo in_array('english-b-sl', $subjects) ? 'checked' : ''; ?>>
-              <label for="tutor-english-b-sl">English B SL</label>
-              <input type="checkbox" name="subjects[]" id="tutor-english-b-hl" value="english-b-hl" <?php echo in_array('english-b-hl', $subjects) ? 'checked' : ''; ?>>
-              <label for="tutor-english-b-hl">English B HL</label>
-              <input type="checkbox" name="subjects[]" id="tutor-japanese-b-sl" value="japanese-b-sl" <?php echo in_array('japanese-b-sl', $subjects) ? 'checked' : ''; ?>>
-              <label for="tutor-japanese-b-sl">Japanese B SL</label>
-              <input type="checkbox" name="subjects[]" id="tutor-japanese-b-hl" value="japanese-b-hl" <?php echo in_array('japanese-b-hl', $subjects) ? 'checked' : ''; ?>>
-              <label for="tutor-japanese-b-hl">Japanese B HL</label>
+            <div class="subject-group">
+              <h3>Languages</h3>
+              <div>
+                <input type="checkbox" name="subjects[]" id="tutor-english-a-sl" value="english-a-sl" <?php echo in_array('english-a-sl', $subjects) ? 'checked' : ''; ?>>
+                <label for="tutor-english-a-sl">English A SL</label>
+                <input type="checkbox" name="subjects[]" id="tutor-english-a-hl" value="english-a-hl" <?php echo in_array('english-a-hl', $subjects) ? 'checked' : ''; ?>>
+                <label for="tutor-english-a-hl">English A HL</label>
+                <input type="checkbox" name="subjects[]" id="tutor-japanese-a-sl" value="japanese-a-sl" <?php echo in_array('japanese-a-sl', $subjects) ? 'checked' : ''; ?>>
+                <label for="tutor-japanese-a-sl">Japanese A SL</label>
+                <input type="checkbox" name="subjects[]" id="tutor-japanese-a-hl" value="japanese-a-hl" <?php echo in_array('japanese-a-hl', $subjects) ? 'checked' : ''; ?>>
+                <label for="tutor-japanese-a-hl">Japanese A HL</label>
+                <input type="checkbox" name="subjects[]" id="tutor-english-b-sl" value="english-b-sl" <?php echo in_array('english-b-sl', $subjects) ? 'checked' : ''; ?>>
+                <label for="tutor-english-b-sl">English B SL</label>
+                <input type="checkbox" name="subjects[]" id="tutor-english-b-hl" value="english-b-hl" <?php echo in_array('english-b-hl', $subjects) ? 'checked' : ''; ?>>
+                <label for="tutor-english-b-hl">English B HL</label>
+                <input type="checkbox" name="subjects[]" id="tutor-japanese-b-sl" value="japanese-b-sl" <?php echo in_array('japanese-b-sl', $subjects) ? 'checked' : ''; ?>>
+                <label for="tutor-japanese-b-sl">Japanese B SL</label>
+                <input type="checkbox" name="subjects[]" id="tutor-japanese-b-hl" value="japanese-b-hl" <?php echo in_array('japanese-b-hl', $subjects) ? 'checked' : ''; ?>>
+                <label for="tutor-japanese-b-hl">Japanese B HL</label>
+              </div>
             </div>
-          </div>
-          <div class="subject-group">
-            <h3>Humanities</h3>
-            <div>
-              <input type="checkbox" name="subjects[]" id="tutor-history-sl" value="history-sl" <?php echo in_array('history-sl', $subjects) ? 'checked' : ''; ?>>
-              <label for="tutor-history-sl">History SL</label>
-              <input type="checkbox" name="subjects[]" id="tutor-history-hl" value="history-hl" <?php echo in_array('history-hl', $subjects) ? 'checked' : ''; ?>>
-              <label for="tutor-history-hl">History HL</label>
-              <input type="checkbox" name="subjects[]" id="tutor-geography-sl" value="geography-sl" <?php echo in_array('geography-sl', $subjects) ? 'checked' : ''; ?>>
-              <label for="tutor-geography-sl">Geography SL</label>
-              <input type="checkbox" name="subjects[]" id="tutor-geography-hl" value="geography-hl" <?php echo in_array('geography-hl', $subjects) ? 'checked' : ''; ?>>
-              <label for="tutor-geography-hl">Geography HL</label>
+            <div class="subject-group">
+              <h3>Humanities</h3>
+              <div>
+                <input type="checkbox" name="subjects[]" id="tutor-history-sl" value="history-sl" <?php echo in_array('history-sl', $subjects) ? 'checked' : ''; ?>>
+                <label for="tutor-history-sl">History SL</label>
+                <input type="checkbox" name="subjects[]" id="tutor-history-hl" value="history-hl" <?php echo in_array('history-hl', $subjects) ? 'checked' : ''; ?>>
+                <label for="tutor-history-hl">History HL</label>
+                <input type="checkbox" name="subjects[]" id="tutor-geography-sl" value="geography-sl" <?php echo in_array('geography-sl', $subjects) ? 'checked' : ''; ?>>
+                <label for="tutor-geography-sl">Geography SL</label>
+                <input type="checkbox" name="subjects[]" id="tutor-geography-hl" value="geography-hl" <?php echo in_array('geography-hl', $subjects) ? 'checked' : ''; ?>>
+                <label for="tutor-geography-hl">Geography HL</label>
+              </div>
             </div>
-          </div>
-          <div class="subject-group">
-            <h3>Arts</h3>
-            <div>
-              <input type="checkbox" name="subjects[]" id="tutor-film-sl" value="film-sl" <?php echo in_array('film-sl', $subjects) ? 'checked' : ''; ?>>
-              <label for="tutor-film-sl">Film SL</label>
-              <input type="checkbox" name="subjects[]" id="tutor-film-hl" value="film-hl" <?php echo in_array('film-hl', $subjects) ? 'checked' : ''; ?>>
-              <label for="tutor-film-hl">Film HL</label>
+            <div class="subject-group">
+              <h3>Arts</h3>
+              <div>
+                <input type="checkbox" name="subjects[]" id="tutor-film-sl" value="film-sl" <?php echo in_array('film-sl', $subjects) ? 'checked' : ''; ?>>
+                <label for="tutor-film-sl">Film SL</label>
+                <input type="checkbox" name="subjects[]" id="tutor-film-hl" value="film-hl" <?php echo in_array('film-hl', $subjects) ? 'checked' : ''; ?>>
+                <label for="tutor-film-hl">Film HL</label>
+              </div>
             </div>
+            <input type="submit" name="signup_as_tutor" value="Sign Up as Tutor" id="signup_as_tutor">
           </div>
         </div>
-        <input type="submit" name="signup_as_tutor" value="Sign Up as Tutor" id="signup_as_tutor">
       </form>
     </div>
 
@@ -261,7 +263,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
           <option value="both" <?php echo $universityChoice == 'both' ? 'selected' : ''; ?>>Both</option>
         </select>
         <div class="subjects">
-          <label>Subjects you can teach:</label>
+          <label>Subjects (that you want to be taught)</label>
           <div class="subject-group">
             <h3>Mathematics</h3>
             <div>
@@ -339,10 +341,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <input type="submit" name="signup_as_student" value="Sign Up as Student" id="signup_as_student">
       </form>
     </div>
-    <p class="signup-link">
-      Already have an account? <a href="login.php">Login</a>
-    </p>
   </div>
+  <p class="signup-link">
+    Already have an account? <a href="login.php">Login</a>
+  </p>
 
   <script>
     $(document).ready(function() {
