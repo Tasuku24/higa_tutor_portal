@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
       if (password_verify($password . $salt, $hashedPassword)) {
         $_SESSION['email'] = $email;
         $_SESSION['user_type'] = $userType;
-        header('Location: home.php');
+        header('Location: index.php');
       } else {
         $errors[] = "Invalid email or password!";
       }

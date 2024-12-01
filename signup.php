@@ -1,21 +1,13 @@
-<!-- 生徒登録とチューター登録の表示切り替えとか頼む -->
 <?php
-
-// 流れ的には
-// 1. チューター or 生徒を選択
-// 2. 基本情報を入力
-// 3. 科目を選択
-
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 // error list
 // 1. パスワードが一致していない場合のエラー表示
 // 2. メールアドレスがすでに登録されている場合のエラー表示
-// 3. チューター登録の場合、教科が選択されていない場合のエラー表示
-// ってのをjavascriptとかでお願い
+// 3. 教科が選択されていない場合のエラー表示
 session_start();
 if (isset($_SESSION['email'])) {
-  header('Location: home.php');
+  header('Location: index.php');
   exit;
 }
 $errors = [];
@@ -32,6 +24,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
   $universityChoice = $_POST['university-choice'];
   if (isset($_POST['subjects']))
     $subjects = $_POST['subjects'];
+  if (isset($_POST['grade']))
+    $grade = $_POST['grade'];
 
   if ($password_input != $confirmPassword) {
     $errors[] = "Passwords do not match!";
@@ -73,16 +67,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $stmt = $conn->prepare($query);
     $stmt->bind_param("ssssssss", $email, $hashedPassword, $salt, $name, $sex, $preferredLanguage, $universityChoice, $subjectsList);
   } elseif (isset($_POST['signup_as_student']) && $flag) {
-    $grade = $_POST['grade'];
-    $query = "INSERT INTO students (email, password, salt, name, sex, grade, preferred_language, university_choice) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-    $stmt->prepare($query);
-    $stmt->bind_param("ssssssss", $email, $hashedPassword, $salt, $name, $sex, $grade, $preferredLanguage, $universityChoice);
+    if (empty($_POST['subjects'])) {
+      $errors[] = "Please select at least one subject!";
+    } else {
+      $subjectsList = implode(',', $subjects);
+    }
+    $query = "INSERT INTO students (email, password, salt, name, sex, grade, preferred_language, university_choice, subjects) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("sssssssss", $email, $hashedPassword, $salt, $name, $sex, $grade, $preferredLanguage, $universityChoice, $subjectsList);
   }
 
   if ($stmt->execute() && empty($errors)) {
     $_SESSION['email'] = $email;
     $_SESSION['user_type'] = isset($_POST['signup_as_tutor']) ? 'tutor' : 'student';
-    header('Location: home.php');
+    header('Location: index.php');
     exit;
   } else if (empty($errors)) {
     $errors[] = "An error occurred!";
@@ -98,10 +96,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HiGA Tutor Portal</title>
   <link rel="stylesheet" href="style.css">
+  <!-- Include jQuery -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 
 <body>
   <h1 class="title">HiGA Tutor Portal</h1>
+  <!-- Signup Option -->
+  <div class="signup-option">
+    <label>
+      <input type="radio" name="signup_option" value="tutor" checked> Sign Up as Tutor
+    </label>
+    <label>
+      <input type="radio" name="signup_option" value="student"> Sign Up as Student
+    </label>
+  </div>
   <!-- エラー表示 -->
   <?php if (!empty($errors)): ?>
     <div class="error-messages">
@@ -111,142 +120,249 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     </div>
   <?php endif; ?>
   <!-- チューター登録 -->
-  <form method="post">
-    <div class="subjects">
-      <label for="subjects">Your Subjects:</label>
-      <div class="subject-group">
-        <h3>Mathematics</h3>
-        <div>
-          <input type="checkbox" name="subjects[]" id="maths-aa-sl" value="maths-aa-sl" <?php echo in_array('maths-aa-sl', $subjects) ? 'checked' : ''; ?>>
-          <label for="maths-aa-sl">Mathematics: Analysis and Approaches SL</label>
-          <input type="checkbox" name="subjects[]" id="maths-aa-hl" value="maths-aa-hl" <?php echo in_array('maths-aa-hl', $subjects) ? 'checked' : ''; ?>>
-          <label for="maths-aa-hl">Mathematics: Analysis and Approaches HL</label>
-          <input type="checkbox" name="subjects[]" id="maths-ai-sl" value="maths-ai-sl" <?php echo in_array('maths-ai-sl', $subjects) ? 'checked' : ''; ?>>
-          <label for="maths-ai-sl">Mathematics: Applications and Interpretation SL</label>
-          <input type="checkbox" name="subjects[]" id="maths-ai-hl" value="maths-ai-hl" <?php echo in_array('maths-ai-hl', $subjects) ? 'checked' : ''; ?>>
-          <label for="maths-ai-hl">Mathematics: Applications and Interpretation HL</label>
+  <div id="tutor-form">
+    <form method="post">
+      <input type="text" name="email" id="tutor-email" placeholder="Email" value="<?php echo htmlspecialchars($email); ?>" required>
+      <input type="password" name="password" id="tutor-password" placeholder="Password" required>
+      <input type="password" name="confirm-password" id="tutor-confirm-password" placeholder="Confirm Password" required>
+      <input type="text" name="name" id="tutor-name" placeholder="Name" value="<?php echo htmlspecialchars($name); ?>" required>
+      <select name="sex" id="tutor-sex" required>
+        <option value="" disabled <?php echo empty($sex) ? 'selected' : ''; ?>>Select Sex</option>
+        <option value="male" <?php echo $sex == 'male' ? 'selected' : ''; ?>>Male</option>
+        <option value="female" <?php echo $sex == 'female' ? 'selected' : ''; ?>>Female</option>
+        <option value="other" <?php echo $sex == 'other' ? 'selected' : ''; ?>>Other</option>
+      </select>
+      <select name="preferred-language" id="tutor-preferred-language" required>
+        <option value="" disabled <?php echo empty($preferredLanguage) ? 'selected' : ''; ?>>Select Preferred Language</option>
+        <option value="english" <?php echo $preferredLanguage == 'english' ? 'selected' : ''; ?>>English</option>
+        <option value="japanese" <?php echo $preferredLanguage == 'japanese' ? 'selected' : ''; ?>>Japanese</option>
+        <option value="both" <?php echo $preferredLanguage == 'both' ? 'selected' : ''; ?>>Both</option>
+      </select>
+      <select name="university-choice" id="tutor-university-choice" required>
+        <option value="" disabled <?php echo empty($universityChoice) ? 'selected' : ''; ?>>Select University Choice</option>
+        <option value="abroad" <?php echo $universityChoice == 'abroad' ? 'selected' : ''; ?>>Abroad</option>
+        <option value="domestic" <?php echo $universityChoice == 'domestic' ? 'selected' : ''; ?>>Domestic</option>
+        <option value="both" <?php echo $universityChoice == 'both' ? 'selected' : ''; ?>>Both</option>
+      </select>
+      <div class="subjects">
+        <label>Subjects you can teach:</label>
+        <div class="subject-group">
+          <h3>Mathematics</h3>
+          <div>
+            <input type="checkbox" name="subjects[]" id="tutor-maths-aa-sl" value="maths-aa-sl" <?php echo in_array('maths-aa-sl', $subjects) ? 'checked' : ''; ?>>
+            <label for="tutor-maths-aa-sl">Mathematics: Analysis and Approaches SL</label>
+            <input type="checkbox" name="subjects[]" id="tutor-maths-aa-hl" value="maths-aa-hl" <?php echo in_array('maths-aa-hl', $subjects) ? 'checked' : ''; ?>>
+            <label for="tutor-maths-aa-hl">Mathematics: Analysis and Approaches HL</label>
+            <input type="checkbox" name="subjects[]" id="tutor-maths-ai-sl" value="maths-ai-sl" <?php echo in_array('maths-ai-sl', $subjects) ? 'checked' : ''; ?>>
+            <label for="tutor-maths-ai-sl">Mathematics: Applications and Interpretation SL</label>
+            <input type="checkbox" name="subjects[]" id="tutor-maths-ai-hl" value="maths-ai-hl" <?php echo in_array('maths-ai-hl', $subjects) ? 'checked' : ''; ?>>
+            <label for="tutor-maths-ai-hl">Mathematics: Applications and Interpretation HL</label>
+          </div>
+        </div>
+        <div class="subject-group">
+          <h3>Sciences</h3>
+          <div>
+            <input type="checkbox" name="subjects[]" id="tutor-physics-sl" value="physics-sl" <?php echo in_array('physics-sl', $subjects) ? 'checked' : ''; ?>>
+            <label for="tutor-physics-sl">Physics SL</label>
+            <input type="checkbox" name="subjects[]" id="tutor-physics-hl" value="physics-hl" <?php echo in_array('physics-hl', $subjects) ? 'checked' : ''; ?>>
+            <label for="tutor-physics-hl">Physics HL</label>
+            <input type="checkbox" name="subjects[]" id="tutor-chemistry-sl" value="chemistry-sl" <?php echo in_array('chemistry-sl', $subjects) ? 'checked' : ''; ?>>
+            <label for="tutor-chemistry-sl">Chemistry SL</label>
+            <input type="checkbox" name="subjects[]" id="tutor-chemistry-hl" value="chemistry-hl" <?php echo in_array('chemistry-hl', $subjects) ? 'checked' : ''; ?>>
+            <label for="tutor-chemistry-hl">Chemistry HL</label>
+            <input type="checkbox" name="subjects[]" id="tutor-biology-sl" value="biology-sl" <?php echo in_array('biology-sl', $subjects) ? 'checked' : ''; ?>>
+            <label for="tutor-biology-sl">Biology SL</label>
+            <input type="checkbox" name="subjects[]" id="tutor-biology-hl" value="biology-hl" <?php echo in_array('biology-hl', $subjects) ? 'checked' : ''; ?>>
+            <label for="tutor-biology-hl">Biology HL</label>
+          </div>
+        </div>
+        <div class="subject-group">
+          <h3>Languages</h3>
+          <div>
+            <input type="checkbox" name="subjects[]" id="tutor-english-a-sl" value="english-a-sl" <?php echo in_array('english-a-sl', $subjects) ? 'checked' : ''; ?>>
+            <label for="tutor-english-a-sl">English A SL</label>
+            <input type="checkbox" name="subjects[]" id="tutor-english-a-hl" value="english-a-hl" <?php echo in_array('english-a-hl', $subjects) ? 'checked' : ''; ?>>
+            <label for="tutor-english-a-hl">English A HL</label>
+            <input type="checkbox" name="subjects[]" id="tutor-japanese-a-sl" value="japanese-a-sl" <?php echo in_array('japanese-a-sl', $subjects) ? 'checked' : ''; ?>>
+            <label for="tutor-japanese-a-sl">Japanese A SL</label>
+            <input type="checkbox" name="subjects[]" id="tutor-japanese-a-hl" value="japanese-a-hl" <?php echo in_array('japanese-a-hl', $subjects) ? 'checked' : ''; ?>>
+            <label for="tutor-japanese-a-hl">Japanese A HL</label>
+            <input type="checkbox" name="subjects[]" id="tutor-english-b-sl" value="english-b-sl" <?php echo in_array('english-b-sl', $subjects) ? 'checked' : ''; ?>>
+            <label for="tutor-english-b-sl">English B SL</label>
+            <input type="checkbox" name="subjects[]" id="tutor-english-b-hl" value="english-b-hl" <?php echo in_array('english-b-hl', $subjects) ? 'checked' : ''; ?>>
+            <label for="tutor-english-b-hl">English B HL</label>
+            <input type="checkbox" name="subjects[]" id="tutor-japanese-b-sl" value="japanese-b-sl" <?php echo in_array('japanese-b-sl', $subjects) ? 'checked' : ''; ?>>
+            <label for="tutor-japanese-b-sl">Japanese B SL</label>
+            <input type="checkbox" name="subjects[]" id="tutor-japanese-b-hl" value="japanese-b-hl" <?php echo in_array('japanese-b-hl', $subjects) ? 'checked' : ''; ?>>
+            <label for="tutor-japanese-b-hl">Japanese B HL</label>
+          </div>
+        </div>
+        <div class="subject-group">
+          <h3>Humanities</h3>
+          <div>
+            <input type="checkbox" name="subjects[]" id="tutor-history-sl" value="history-sl" <?php echo in_array('history-sl', $subjects) ? 'checked' : ''; ?>>
+            <label for="tutor-history-sl">History SL</label>
+            <input type="checkbox" name="subjects[]" id="tutor-history-hl" value="history-hl" <?php echo in_array('history-hl', $subjects) ? 'checked' : ''; ?>>
+            <label for="tutor-history-hl">History HL</label>
+            <input type="checkbox" name="subjects[]" id="tutor-geography-sl" value="geography-sl" <?php echo in_array('geography-sl', $subjects) ? 'checked' : ''; ?>>
+            <label for="tutor-geography-sl">Geography SL</label>
+            <input type="checkbox" name="subjects[]" id="tutor-geography-hl" value="geography-hl" <?php echo in_array('geography-hl', $subjects) ? 'checked' : ''; ?>>
+            <label for="tutor-geography-hl">Geography HL</label>
+          </div>
+        </div>
+        <div class="subject-group">
+          <h3>Arts</h3>
+          <div>
+            <input type="checkbox" name="subjects[]" id="tutor-film-sl" value="film-sl" <?php echo in_array('film-sl', $subjects) ? 'checked' : ''; ?>>
+            <label for="tutor-film-sl">Film SL</label>
+            <input type="checkbox" name="subjects[]" id="tutor-film-hl" value="film-hl" <?php echo in_array('film-hl', $subjects) ? 'checked' : ''; ?>>
+            <label for="tutor-film-hl">Film HL</label>
+          </div>
         </div>
       </div>
-      <div class="subject-group">
-        <h3>Sciences</h3>
-        <div>
-          <input type="checkbox" name="subjects[]" id="biology-sl" value="biology-sl" <?php echo in_array('biology-sl', $subjects) ? 'checked' : ''; ?>>
-          <label for="biology-sl">Biology SL</label>
-          <input type="checkbox" name="subjects[]" id="biology-hl" value="biology-hl" <?php echo in_array('biology-hl', $subjects) ? 'checked' : ''; ?>>
-          <label for="biology-hl">Biology HL</label>
-          <input type="checkbox" name="subjects[]" id="chemistry-sl" value="chemistry-sl" <?php echo in_array('chemistry-sl', $subjects) ? 'checked' : ''; ?>>
-          <label for="chemistry-sl">Chemistry SL</label>
-          <input type="checkbox" name="subjects[]" id="chemistry-hl" value="chemistry-hl" <?php echo in_array('chemistry-hl', $subjects) ? 'checked' : ''; ?>>
-          <label for="chemistry-hl">Chemistry HL</label>
-          <input type="checkbox" name="subjects[]" id="physics-sl" value="physics-sl" <?php echo in_array('physics-sl', $subjects) ? 'checked' : ''; ?>>
-          <label for="physics-sl">Physics SL</label>
-          <input type="checkbox" name="subjects[]" id="physics-hl" value="physics-hl" <?php echo in_array('physics-hl', $subjects) ? 'checked' : ''; ?>>
-          <label for="physics-hl">Physics HL</label>
-        </div>
-      </div>
-      <div class="subject-group">
-        <h3>Languages</h3>
-        <div>
-          <input type="checkbox" name="subjects[]" id="english-a-sl" value="english-a-sl" <?php echo in_array('english-a-sl', $subjects) ? 'checked' : ''; ?>>
-          <label for="english-a-sl">English A SL</label>
-          <input type="checkbox" name="subjects[]" id="english-a-hl" value="english-a-hl" <?php echo in_array('english-a-hl', $subjects) ? 'checked' : ''; ?>>
-          <label for="english-a-hl">English A HL</label>
-          <input type="checkbox" name="subjects[]" id="japanese-a-sl" value="japanese-a-sl" <?php echo in_array('japanese-a-sl', $subjects) ? 'checked' : ''; ?>>
-          <label for="japanese-a-sl">Japanese A SL</label>
-          <input type="checkbox" name="subjects[]" id="japanese-a-hl" value="japanese-a-hl" <?php echo in_array('japanese-a-hl', $subjects) ? 'checked' : ''; ?>>
-          <label for="japanese-a-hl">Japanese A HL</label>
-          <input type="checkbox" name="subjects[]" id="english-b-sl" value="english-b-sl" <?php echo in_array('english-b-sl', $subjects) ? 'checked' : ''; ?>>
-          <label for="english-b-sl">English B SL</label>
-          <input type="checkbox" name="subjects[]" id="english-b-hl" value="english-b-hl" <?php echo in_array('english-b-hl', $subjects) ? 'checked' : ''; ?>>
-          <label for="english-b-hl">English B HL</label>
-          <input type="checkbox" name="subjects[]" id="japanese-b-sl" value="japanese-b-sl" <?php echo in_array('japanese-b-sl', $subjects) ? 'checked' : ''; ?>>
-          <label for="japanese-b-sl">Japanese B SL</label>
-          <input type="checkbox" name="subjects[]" id="japanese-b-hl" value="japanese-b-hl" <?php echo in_array('japanese-b-hl', $subjects) ? 'checked' : ''; ?>>
-          <label for="japanese-b-hl">Japanese B HL</label>
-        </div>
-      </div>
-      <div class="subject-group">
-        <h3>Humanities</h3>
-        <div>
-          <input type="checkbox" name="subjects[]" id="history-sl" value="history-sl" <?php echo in_array('history-sl', $subjects) ? 'checked' : ''; ?>>
-          <label for="history-sl">History SL</label>
-          <input type="checkbox" name="subjects[]" id="history-hl" value="history-hl" <?php echo in_array('history-hl', $subjects) ? 'checked' : ''; ?>>
-          <label for="history-hl">History HL</label>
-          <input type="checkbox" name="subjects[]" id="geography-sl" value="geography-sl" <?php echo in_array('geography-sl', $subjects) ? 'checked' : ''; ?>>
-          <label for="geography-sl">Geography SL</label>
-          <input type="checkbox" name="subjects[]" id="geography-hl" value="geography-hl" <?php echo in_array('geography-hl', $subjects) ? 'checked' : ''; ?>>
-          <label for="geography-hl">Geography HL</label>
-        </div>
-      </div>
-      <div class="subject-group">
-        <h3>Arts</h3>
-        <div>
-          <input type="checkbox" name="subjects[]" id="film-sl" value="film-sl" <?php echo in_array('film-sl', $subjects) ? 'checked' : ''; ?>>
-          <label for="film-sl">Film SL</label>
-          <input type="checkbox" name="subjects[]" id="music-sl" value="music-sl" <?php echo in_array('music-sl', $subjects) ? 'checked' : ''; ?>>
-          <label for="music-sl">Music SL</label>
-        </div>
-      </div>
-    </div>
-    <input type="text" name="email" id="email" placeholder="Email" value="<?php echo htmlspecialchars($email); ?>" required>
-    <input type="password" name="password" id="password" placeholder="Password" required>
-    <input type="password" name="confirm-password" id="confirm-password" placeholder="Confirm Password" required>
-    <input type="text" name="name" id="name" placeholder="Name" value="<?php echo htmlspecialchars($name); ?>" required>
-    <select name="sex" id="sex" required>
-      <option value="" disabled <?php echo empty($sex) ? 'selected' : ''; ?>>Select Sex</option>
-      <option value="male" <?php echo $sex == 'male' ? 'selected' : ''; ?>>Male</option>
-      <option value="female" <?php echo $sex == 'female' ? 'selected' : ''; ?>>Female</option>
-      <option value="other" <?php echo $sex == 'other' ? 'selected' : ''; ?>>Other</option>
-    </select>
-    <select name="preferred-language" id="preferred-language" required>
-      <option value="" disabled <?php echo empty($preferredLanguage) ? 'selected' : ''; ?>>Select Preferred Language</option>
-      <option value="english" <?php echo $preferredLanguage == 'english' ? 'selected' : ''; ?>>English</option>
-      <option value="japanese" <?php echo $preferredLanguage == 'japanese' ? 'selected' : ''; ?>>Japanese</option>
-      <option value="both" <?php echo $preferredLanguage == 'both' ? 'selected' : ''; ?>>Both</option>
-    </select>
-    <select name="university-choice" id="university-choice" required>
-      <option value="" disabled <?php echo empty($universityChoice) ? 'selected' : ''; ?>>Select University Choice</option>
-      <option value="abroad" <?php echo $universityChoice == 'abroad' ? 'selected' : ''; ?>>Abroad</option>
-      <option value="domestic" <?php echo $universityChoice == 'domestic' ? 'selected' : ''; ?>>Domestic</option>
-      <option value="both" <?php echo $universityChoice == 'both' ? 'selected' : ''; ?>>Both</option>
-    </select>
-    <input type="submit" name="signup_as_tutor" value="Sign Up as Tutor" id="signup_as_tutor">
+      <input type="submit" name="signup_as_tutor" value="Sign Up as Tutor" id="signup_as_tutor">
+    </form>
+  </div>
 
-    <!-- 生徒登録 -->
-    <input type="text" name="email" id="email" placeholder="Email" value="<?php echo htmlspecialchars($email); ?>" required>
-    <input type="password" name="password" id="password" placeholder="Password" required>
-    <input type="password" name="confirm-password" id="confirm-password" placeholder="Confirm Password" required>
-    <input type="text" name="name" id="name" placeholder="Name" value="<?php echo htmlspecialchars($name); ?>" required>
-    <select name="sex" id="sex" required>
-      <option value="" disabled <?php echo empty($sex) ? 'selected' : ''; ?>>Select Sex</option>
-      <option value="male" <?php echo $sex == 'male' ? 'selected' : ''; ?>>Male</option>
-      <option value="female" <?php echo $sex == 'female' ? 'selected' : ''; ?>>Female</option>
-      <option value="other" <?php echo $sex == 'other' ? 'selected' : ''; ?>>Other</option>
-    </select>
-    <select name="grade" id="grade" required>
-      <option value="" disabled <?php echo empty($grade) ? 'selected' : ''; ?>>Select Grade</option>
-      <option value="grade9" <?php echo $grade == 'grade9' ? 'selected' : ''; ?>>Grade 9</option>
-      <option value="grade10" <?php echo $grade == 'grade10' ? 'selected' : ''; ?>>Grade 10</option>
-      <option value="grade11" <?php echo $grade == 'grade11' ? 'selected' : ''; ?>>Grade 11</option>
-      <option value="grade12" <?php echo $grade == 'grade12' ? 'selected' : ''; ?>>Grade 12</option>
-    </select>
-    <select name="preferred-language" id="preferred-language" required>
-      <option value="" disabled <?php echo empty($preferredLanguage) ? 'selected' : ''; ?>>Select Preferred Language</option>
-      <option value="english" <?php echo $preferredLanguage == 'english' ? 'selected' : ''; ?>>English</option>
-      <option value="japanese" <?php echo $preferredLanguage == 'japanese' ? 'selected' : ''; ?>>Japanese</option>
-      <option value="both" <?php echo $preferredLanguage == 'both' ? 'selected' : ''; ?>>Both</option>
-    </select>
-    <select name="university-choice" id="university-choice" required>
-      <option value="" disabled <?php echo empty($universityChoice) ? 'selected' : ''; ?>>Select University Choice</option>
-      <option value="abroad" <?php echo $universityChoice == 'abroad' ? 'selected' : ''; ?>>Abroad</option>
-      <option value="domestic" <?php echo $universityChoice == 'domestic' ? 'selected' : ''; ?>>Domestic</option>
-      <option value="both" <?php echo $universityChoice == 'both' ? 'selected' : ''; ?>>Both</option>
-    </select>
-    <input type="submit" name="signup_as_student" value="Sign Up as Student" id="signup_as_student">
-  </form>
+  <!-- 生徒登録 -->
+  <div id="student-form" style="display: none;">
+    <form method="post">
+      <input type="text" name="email" id="student-email" placeholder="Email" value="<?php echo htmlspecialchars($email); ?>" required>
+      <input type="password" name="password" id="student-password" placeholder="Password" required>
+      <input type="password" name="confirm-password" id="student-confirm-password" placeholder="Confirm Password" required>
+      <input type="text" name="name" id="student-name" placeholder="Name" value="<?php echo htmlspecialchars($name); ?>" required>
+      <select name="sex" id="student-sex" required>
+        <option value="" disabled <?php echo empty($sex) ? 'selected' : ''; ?>>Select Sex</option>
+        <option value="male" <?php echo $sex == 'male' ? 'selected' : ''; ?>>Male</option>
+        <option value="female" <?php echo $sex == 'female' ? 'selected' : ''; ?>>Female</option>
+        <option value="other" <?php echo $sex == 'other' ? 'selected' : ''; ?>>Other</option>
+      </select>
+      <select name="grade" id="student-grade" required>
+        <option value="" disabled <?php echo empty($grade) ? 'selected' : ''; ?>>Select Grade</option>
+        <option value="grade9" <?php echo $grade == 'grade9' ? 'selected' : ''; ?>>Grade 9</option>
+        <option value="grade10" <?php echo $grade == 'grade10' ? 'selected' : ''; ?>>Grade 10</option>
+        <option value="grade11" <?php echo $grade == 'grade11' ? 'selected' : ''; ?>>Grade 11</option>
+        <option value="grade12" <?php echo $grade == 'grade12' ? 'selected' : ''; ?>>Grade 12</option>
+      </select>
+      <select name="preferred-language" id="student-preferred-language" required>
+        <option value="" disabled <?php echo empty($preferredLanguage) ? 'selected' : ''; ?>>Select Preferred Language</option>
+        <option value="english" <?php echo $preferredLanguage == 'english' ? 'selected' : ''; ?>>English</option>
+        <option value="japanese" <?php echo $preferredLanguage == 'japanese' ? 'selected' : ''; ?>>Japanese</option>
+        <option value="both" <?php echo $preferredLanguage == 'both' ? 'selected' : ''; ?>>Both</option>
+      </select>
+      <select name="university-choice" id="student-university-choice" required>
+        <option value="" disabled <?php echo empty($universityChoice) ? 'selected' : ''; ?>>Select University Choice</option>
+        <option value="abroad" <?php echo $universityChoice == 'abroad' ? 'selected' : ''; ?>>Abroad</option>
+        <option value="domestic" <?php echo $universityChoice == 'domestic' ? 'selected' : ''; ?>>Domestic</option>
+        <option value="both" <?php echo $universityChoice == 'both' ? 'selected' : ''; ?>>Both</option>
+      </select>
+      <div class="subjects">
+        <label>Subjects you can teach:</label>
+        <div class="subject-group">
+          <h3>Mathematics</h3>
+          <div>
+            <input type="checkbox" name="subjects[]" id="student-maths-aa-sl" value="maths-aa-sl" <?php echo in_array('maths-aa-sl', $subjects) ? 'checked' : ''; ?>>
+            <label for="student-maths-aa-sl">Mathematics: Analysis and Approaches SL</label>
+            <input type="checkbox" name="subjects[]" id="student-maths-aa-hl" value="maths-aa-hl" <?php echo in_array('maths-aa-hl', $subjects) ? 'checked' : ''; ?>>
+            <label for="student-maths-aa-hl">Mathematics: Analysis and Approaches HL</label>
+            <input type="checkbox" name="subjects[]" id="student-maths-ai-sl" value="maths-ai-sl" <?php echo in_array('maths-ai-sl', $subjects) ? 'checked' : ''; ?>>
+            <label for="student-maths-ai-sl">Mathematics: Applications and Interpretation SL</label>
+            <input type="checkbox" name="subjects[]" id="student-maths-ai-hl" value="maths-ai-hl" <?php echo in_array('maths-ai-hl', $subjects) ? 'checked' : ''; ?>>
+            <label for="student-maths-ai-hl">Mathematics: Applications and Interpretation HL</label>
+          </div>
+        </div>
+        <div class="subject-group">
+          <h3>Sciences</h3>
+          <div>
+            <input type="checkbox" name="subjects[]" id="student-physics-sl" value="physics-sl" <?php echo in_array('physics-sl', $subjects) ? 'checked' : ''; ?>>
+            <label for="student-physics-sl">Physics SL</label>
+            <input type="checkbox" name="subjects[]" id="student-physics-hl" value="physics-hl" <?php echo in_array('physics-hl', $subjects) ? 'checked' : ''; ?>>
+            <label for="student-physics-hl">Physics HL</label>
+            <input type="checkbox" name="subjects[]" id="student-chemistry-sl" value="chemistry-sl" <?php echo in_array('chemistry-sl', $subjects) ? 'checked' : ''; ?>>
+            <label for="student-chemistry-sl">Chemistry SL</label>
+            <input type="checkbox" name="subjects[]" id="student-chemistry-hl" value="chemistry-hl" <?php echo in_array('chemistry-hl', $subjects) ? 'checked' : ''; ?>>
+            <label for="student-chemistry-hl">Chemistry HL</label>
+            <input type="checkbox" name="subjects[]" id="student-biology-sl" value="biology-sl" <?php echo in_array('biology-sl', $subjects) ? 'checked' : ''; ?>>
+            <label for="student-biology-sl">Biology SL</label>
+            <input type="checkbox" name="subjects[]" id="student-biology-hl" value="biology-hl" <?php echo in_array('biology-hl', $subjects) ? 'checked' : ''; ?>>
+            <label for="student-biology-hl">Biology HL</label>
+          </div>
+        </div>
+        <div class="subject-group">
+          <h3>Languages</h3>
+          <div>
+            <input type="checkbox" name="subjects[]" id="student-english-a-sl" value="english-a-sl" <?php echo in_array('english-a-sl', $subjects) ? 'checked' : ''; ?>>
+            <label for="student-english-a-sl">English A SL</label>
+            <input type="checkbox" name="subjects[]" id="student-english-a-hl" value="english-a-hl" <?php echo in_array('english-a-hl', $subjects) ? 'checked' : ''; ?>>
+            <label for="student-english-a-hl">English A HL</label>
+            <input type="checkbox" name="subjects[]" id="student-japanese-a-sl" value="japanese-a-sl" <?php echo in_array('japanese-a-sl', $subjects) ? 'checked' : ''; ?>>
+            <label for="student-japanese-a-sl">Japanese A SL</label>
+            <input type="checkbox" name="subjects[]" id="student-japanese-a-hl" value="japanese-a-hl" <?php echo in_array('japanese-a-hl', $subjects) ? 'checked' : ''; ?>>
+            <label for="student-japanese-a-hl">Japanese A HL</label>
+            <input type="checkbox" name="subjects[]" id="student-english-b-sl" value="english-b-sl" <?php echo in_array('english-b-sl', $subjects) ? 'checked' : ''; ?>>
+            <label for="student-english-b-sl">English B SL</label>
+            <input type="checkbox" name="subjects[]" id="student-english-b-hl" value="english-b-hl" <?php echo in_array('english-b-hl', $subjects) ? 'checked' : ''; ?>>
+            <label for="student-english-b-hl">English B HL</label>
+            <input type="checkbox" name="subjects[]" id="student-japanese-b-sl" value="japanese-b-sl" <?php echo in_array('japanese-b-sl', $subjects) ? 'checked' : ''; ?>>
+            <label for="student-japanese-b-sl">Japanese B SL</label>
+            <input type="checkbox" name="subjects[]" id="student-japanese-b-hl" value="japanese-b-hl" <?php echo in_array('japanese-b-hl', $subjects) ? 'checked' : ''; ?>>
+            <label for="student-japanese-b-hl">Japanese B HL</label>
+          </div>
+        </div>
+        <div class="subject-group">
+          <h3>Humanities</h3>
+          <div>
+            <input type="checkbox" name="subjects[]" id="student-history-sl" value="history-sl" <?php echo in_array('history-sl', $subjects) ? 'checked' : ''; ?>>
+            <label for="student-history-sl">History SL</label>
+            <input type="checkbox" name="subjects[]" id="student-history-hl" value="history-hl" <?php echo in_array('history-hl', $subjects) ? 'checked' : ''; ?>>
+            <label for="student-history-hl">History HL</label>
+            <input type="checkbox" name="subjects[]" id="student-geography-sl" value="geography-sl" <?php echo in_array('geography-sl', $subjects) ? 'checked' : ''; ?>>
+            <label for="student-geography-sl">Geography SL</label>
+            <input type="checkbox" name="subjects[]" id="student-geography-hl" value="geography-hl" <?php echo in_array('geography-hl', $subjects) ? 'checked' : ''; ?>>
+            <label for="student-geography-hl">Geography HL</label>
+          </div>
+        </div>
+        <div class="subject-group">
+          <h3>Arts</h3>
+          <div>
+            <input type="checkbox" name="subjects[]" id="student-film-sl" value="film-sl" <?php echo in_array('film-sl', $subjects) ? 'checked' : ''; ?>>
+            <label for="student-film-sl">Film SL</label>
+            <input type="checkbox" name="subjects[]" id="student-film-hl" value="film-hl" <?php echo in_array('film-hl', $subjects) ? 'checked' : ''; ?>>
+            <label for="student-film-hl">Film HL</label>
+          </div>
+        </div>
+      </div>
+      <input type="submit" name="signup_as_student" value="Sign Up as Student" id="signup_as_student">
+    </form>
+  </div>
   <p class="signup-link">
     Already have an account? <a href="login.php">Login</a>
   </p>
+
+  <script>
+    $(document).ready(function() {
+      // Initially display the appropriate form with animation
+      var selectedOption = $('input[name="signup_option"]:checked').val();
+      if (selectedOption == 'tutor') {
+        $('#tutor-form').slideDown();
+      } else {
+        $('#student-form').slideDown();
+      }
+
+      // Animate form transitions on option change
+      $('input[name="signup_option"]').change(function() {
+        if (this.value == 'tutor') {
+          $('#student-form').slideUp('fast', function() {
+            $('#tutor-form').slideDown('fast');
+          });
+        } else {
+          $('#tutor-form').slideUp('fast', function() {
+            $('#student-form').slideDown('fast');
+          });
+        }
+      });
+    });
+  </script>
 </body>
 
 </html>

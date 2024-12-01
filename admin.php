@@ -101,7 +101,84 @@ if ($result->num_rows > 0) {
       <?php endforeach; ?>
     </tbody>
   </table>
-  <a href="./index.php">Go Back</a>
+  <?php
+  // Fetch all tutors
+  $tutorQuery = "SELECT * FROM tutors";
+  $tutorResult = $conn->query($tutorQuery);
+  $tutors = $tutorResult->num_rows > 0 ? $tutorResult->fetch_all(MYSQLI_ASSOC) : [];
+
+  // Fetch all students
+  $studentQuery = "SELECT * FROM students";
+  $studentResult = $conn->query($studentQuery);
+  $students = $studentResult->num_rows > 0 ? $studentResult->fetch_all(MYSQLI_ASSOC) : [];
+
+  // Find matching pairs
+  $matchingPairs = [];
+
+  foreach ($tutors as $tutor) {
+    $tutorSubjects = array_map('trim', explode(',', $tutor['subjects']));
+    foreach ($students as $student) {
+      $studentSubjects = array_map('trim', explode(',', $student['subjects']));
+      $commonSubjects = array_intersect($tutorSubjects, $studentSubjects);
+
+      // Check for language compatibility
+      $languageMatch = ($tutor['preferred_language'] === 'both' || $student['preferred_language'] === 'both') ||
+        ($tutor['preferred_language'] === $student['preferred_language']);
+
+      // Check for university compatibility
+      $universityMatch = ($tutor['university_choice'] === 'both' || $student['university_choice'] === 'both') ||
+        ($tutor['university_choice'] === $student['university_choice']);
+
+      if (
+        !empty($commonSubjects) &&
+        $languageMatch &&
+        $universityMatch
+      ) {
+        $matchingPairs[] = [
+          'tutor_name' => $tutor['NAME'],
+          'student_name' => $student['NAME'],
+          'student_grade' => $student['grade'],
+          'common_subjects' => implode(', ', $commonSubjects),
+          'preferred_language' => $tutor['preferred_language'] === 'both' ? $student['preferred_language'] : $tutor['preferred_language'],
+          'university_choice' => $tutor['university_choice'] === 'both' ? $student['university_choice'] : $tutor['university_choice']
+        ];
+      }
+    }
+  }
+  ?>
+
+  <h2>Matching Tutor-Student Pairs</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Tutor Name</th>
+        <th>Student Name</th>
+        <th>Student Grade</th>
+        <th>Common Subjects</th>
+        <th>Preferred Language</th>
+        <th>University Choice</th>
+      </tr>
+    </thead>
+    <tbody>
+      <?php if (!empty($matchingPairs)): ?>
+        <?php foreach ($matchingPairs as $pair): ?>
+          <tr>
+            <td><?php echo htmlspecialchars($pair['tutor_name']); ?></td>
+            <td><?php echo htmlspecialchars($pair['student_name']); ?></td>
+            <td><?php echo htmlspecialchars($pair['student_grade']); ?></td>
+            <td><?php echo htmlspecialchars($pair['common_subjects']); ?></td>
+            <td><?php echo htmlspecialchars($pair['preferred_language']); ?></td>
+            <td><?php echo htmlspecialchars($pair['university_choice']); ?></td>
+          </tr>
+        <?php endforeach; ?>
+      <?php else: ?>
+        <tr>
+          <td colspan="7">No matching pairs found.</td>
+        </tr>
+      <?php endif; ?>
+    </tbody>
+  </table>
+  <a href="./login.php">Go Back</a>
 </body>
 
 </html>
