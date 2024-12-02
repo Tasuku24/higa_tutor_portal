@@ -74,11 +74,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
       <?php endforeach; ?>
     </div>
   <?php endif; ?>
-  <form method="post">
-    <input type="text" name="email" id="email" placeholder="Email" value="<?php echo htmlspecialchars($email); ?>" required>
-    <input type="password" name="password" id="password" placeholder="Password" required>
-    <input type="submit" value="Login">
-  </form>
+  <div class="body">
+    <form id="login-form" method="post">
+      <input type="text" name="email" id="email" placeholder="Email" value="<?php echo htmlspecialchars($email); ?>" required>
+      <input type="password" name="password" id="password" placeholder="Password" required>
+      <input id="login-btn" type="submit" value="Login">
+    </form>
+  </div>
   <p class="signup-link">
     Don't have an account? <a href="signup.php">Sign Up</a>
   </p>
