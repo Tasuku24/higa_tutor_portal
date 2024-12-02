@@ -3,6 +3,7 @@
   --tx-clr: #262626;
   --pr-clr: #5F5AA2;
   --sc-clr: #C4CAD0;
+  --er-clr: #ED254E;
 }
 
 * {
@@ -179,6 +180,11 @@ input::placeholder {
 .signup-link a, .admin-link a {
   color: var(--pr-clr);
   text-decoration: none;
+}
+
+.error-messages p {
+  text-align: center;
+  color: var(--er-clr);
 }
 
 #login-form {
