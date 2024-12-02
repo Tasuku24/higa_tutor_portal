@@ -101,7 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 </head>
 
 <body>
-  <h1 class="title">Sign Up to HiGA Tutor Portal</h1>
+  <h1 class="title">Sign Up to <span>HiGA Tutor Portal</span></h1>
   <!-- Signup Option -->
   <div class="body">
     <div class="signup-option">

@@ -38,18 +38,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
   }
 
   if (empty($errors)) {
-    if (isset($user['PASSWORD']) && isset($user['salt'])) {
-      $hashedPassword = $user['PASSWORD'];
+    if (isset($user['password']) && isset($user['salt'])) {
+      $hashedPassword = $user['password'];
       $salt = $user['salt'];
       if (password_verify($password . $salt, $hashedPassword)) {
         $_SESSION['email'] = $email;
         $_SESSION['user_type'] = $userType;
         header('Location: index.php');
       } else {
-        $errors[] = "Invalid email or password!";
+        $errors[] = "Invalid password!";
       }
     } else {
-      $errors[] = "Invalid email or password!";
+      $text  = var_dump($user);
+      $errors[] = "Invalid email!{$text}";
     }
   }
 }
@@ -66,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 </head>
 
 <body>
-  <h1 class="title">Login to HiGA Tutor Portal</h1>
+  <h1 class="title">Login to <span>HiGA Tutor Portal</span></h1>
   <?php if (!empty($errors)): ?>
     <div class="error-messages">
       <?php foreach ($errors as $error): ?>

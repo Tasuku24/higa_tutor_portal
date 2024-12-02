@@ -55,11 +55,19 @@ input::placeholder {
   opacity: .55;
 }
 
+button {
+  cursor: pointer;
+}
+
 .title {
   text-align: center;
   font-size: 3rem;
   font-weight: 700;
   margin-bottom: 2.5rem;
+}
+
+.title span {
+  color: var(--pr-clr);
 }
 
 .body {
@@ -172,14 +180,18 @@ input::placeholder {
   color: var(--bg-clr);
 }
 
-.signup-link, .admin-link {
+.signup-link, .admin-link, .go-back {
   margin: .2rem auto;
   text-align: center;
 }
 
-.signup-link a, .admin-link a {
+.signup-link a, .admin-link a, .go-back a {
   color: var(--pr-clr);
+  font-weight: 700;
   text-decoration: none;
+}
+.signup-link a:hover, .admin-link a:hover, .go-back a:hover {
+  text-decoration: underline;
 }
 
 .error-messages p {
@@ -187,8 +199,44 @@ input::placeholder {
   color: var(--er-clr);
 }
 
-#login-form {
+#login-form, #admin-login-form {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+}
+
+.logout {
+  display: block;
+  margin: 0 auto;
+  text-align: center;
+  width: 250px;
+  height: 50px;
+  font-size: 1.2rem;
+  border-radius: 100vh;
+  border: none;
+  background-color: var(--sc-clr);
+  color: var(--tx-clr);
+  transition: all 200ms;
+}
+
+.logout:hover {
+  background-color: var(--er-clr);
+  color: var(--bg-clr);
+}
+
+#admin table {
+  border-collapse: collapse;
+  text-align: center;
+}
+
+#admin table thead {
+  color: var(--pr-clr);
+}
+
+#admin table th, #admin table td {
+  padding: .3rem 1rem;
+}
+
+#admin table thead tr th {
+  border-bottom: solid 3px var(--tx-clr);
 }
